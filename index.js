@@ -10,7 +10,7 @@ require('shelljs/global');
 
 function usage() {
   echo("");
-  echo("  Usage: bash $0 <major|minor|patch>");
+  echo("  Usage: node " + process.argv[1] + " <major|minor|patch>");
 }
 
 config.silent = true;
