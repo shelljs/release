@@ -1,10 +1,16 @@
 {
-  "name": "release",
+  "name": "shelljs-release",
   "version": "0.1.0",
   "description": "A handy release script, using shelljs",
   "main": "index.js",
+  "bin": {
+    "release": "index.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "release:major": "node index.js major",
+    "release:minor": "node index.js minor",
+    "release:patch": "node index.js patch"
   },
   "keywords": [
     "release",
