@@ -8,6 +8,12 @@ A simple NodeJS script to help make npm releases.
 npm install --save-dev shelljs/release
 ```
 
+Also, make sure your master branch has upstream-tracking set-up:
+
+```bash
+git push --set-upstream origin master
+```
+
 ## Usage
 
 In `package.json`:
