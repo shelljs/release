@@ -19,6 +19,10 @@
     "script"
   ],
   "author": "Nate Fischer <ntfschr@gmail.com> (https://github.com/nfischer)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/shelljs/release.git"
+  },
   "license": "MIT",
   "dependencies": {
     "shelljs": "^0.7.0"
