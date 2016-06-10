@@ -5,7 +5,7 @@ A simple NodeJS script to help make npm releases.
 ## Installation
 
 ```bash
-npm install --save-dev shelljs/release
+npm install --save-dev shelljs-release
 ```
 
 Also, make sure your master branch has upstream-tracking set-up:
