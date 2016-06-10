@@ -19,12 +19,12 @@ git push --set-upstream origin master
 In `package.json`:
 
 ```json
-  "scripts": [
+  "scripts": {
     "test": "... whatever you had here before ...",
     "release:major": "release major",
     "release:minor": "release minor",
     "release:patch": "release patch"
-  ],
+  },
 ```
 
 Use this by running:
