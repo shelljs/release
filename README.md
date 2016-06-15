@@ -19,9 +19,9 @@ Now, add some `scripts` to `package.json` like so:
 ```json
   "scripts": {
     "test": "... whatever you had here before ...",
-    "release:major": "release major",
-    "release:minor": "release minor",
-    "release:patch": "release patch"
+    "release:major": "shelljs-release major",
+    "release:minor": "shelljs-release minor",
+    "release:patch": "shelljs-release patch"
   },
 ```
 
