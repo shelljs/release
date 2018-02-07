@@ -3,6 +3,8 @@ require('shelljs/global');
 
 var path = require('path');
 
+var minimist = require('minimist');
+
 var RELEASE_BRANCH = 'master';
 
 // npm version (bump version, commit, make tag)
@@ -12,7 +14,7 @@ var RELEASE_BRANCH = 'master';
 
 function usage() {
   echo('');
-  echo('  Usage: node ' + process.argv[1] + ' <major|minor|patch>');
+  echo('  Usage: node ' + process.argv[1] + ' [--otp=<otpcode>] <major|minor|patch>');
 }
 
 function gitBranch() {
@@ -24,7 +26,8 @@ function gitBranch() {
 }
 
 config.silent = true;
-function run(version) {
+function run(argv) {
+  var version = argv._[0];
   config.silent = false;
   config.fatal = true;
   try {
@@ -50,7 +53,11 @@ function run(version) {
   }
 
   try {
-    exec('npm publish');
+    var publishCmd = 'npm publish';
+    if (argv.otp) {
+      publishCmd += ' --otp=' + argv.otp;
+    }
+    exec(publishCmd);
   } catch (e) {
     config.fatal = false;
     echo('');
@@ -101,11 +108,12 @@ function run(version) {
   }
 }
 
-switch (process.argv[2]) {
+var argv = minimist(process.argv.slice(2));
+switch (argv._[0]) {
   case 'major':
   case 'minor':
   case 'patch':
-    run(process.argv[2]);
+    run(argv);
     break;
 
   default:
