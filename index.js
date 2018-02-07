@@ -5,6 +5,8 @@ var path = require('path');
 
 var minimist = require('minimist');
 
+var RELEASE_BRANCH = 'master';
+
 // npm version (bump version, commit, make tag)
 // echo npm publish
 //  - if successful, push commit & tag
@@ -15,13 +17,32 @@ function usage() {
   echo('  Usage: node ' + process.argv[1] + ' [--otp=<otpcode>] <major|minor|patch>');
 }
 
+function gitBranch() {
+  var output = exec('git rev-parse --abbrev-ref HEAD', { silent: true });
+  if (output.code) {
+    throw new Error('Unable to fetch git branch');
+  }
+  return output.stdout.trimRight();
+}
+
 config.silent = true;
 function run(argv) {
   var version = argv._[0];
   config.silent = false;
   config.fatal = true;
   try {
-    // TODO(nfischer): only allow releases from master branch (issue #4)
+    var currentBranch = gitBranch();
+    if (currentBranch !== RELEASE_BRANCH) {
+      echo('Please switch to the release branch: ' + RELEASE_BRANCH);
+      echo('Currently on: ' + currentBranch);
+      exit(1);
+    }
+  } catch (e) {
+    echo('Are you in a git repo?');
+    exit(1);
+  }
+
+  try {
     echo('Publishing new ' + version + ' version');
     echo('');
     exec('npm version ' + version);
@@ -78,9 +99,8 @@ function run(argv) {
 
   config.silent = false;
   try {
-    // TODO(nfischer): this currently requires upstream tracking (issue #2)
-    exec('git push');
-    exec('git push --tags');
+    exec('git push origin ' + RELEASE_BRANCH);
+    exec('git push --tags origin ' + RELEASE_BRANCH);
   } catch (e) {
     echo('');
     echo('Version has been released, but commit/tag could not be pushed.');
