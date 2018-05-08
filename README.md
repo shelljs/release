@@ -49,3 +49,14 @@ Cool!
 Similarly, if you want to jump from `v1.2.6` to `v1.3.0,` or from `v1.2.6` to
 `v2.0.0`, you can run `npm run release:minor` or `npm run release:major`
 respectively.
+
+## Two Factor Authentication (2FA, OTP)
+
+Newer versions of npm [support Two Factor
+Authentication](https://docs.npmjs.com/getting-started/using-two-factor-authentication)
+(2FA) for added security. We've added support passing OTPs on the commandline:
+
+```bash
+$ npm run release:patch -- --otp=123456
+$ # Substitute "123456" for your actual OTP from a supported app.
+```
