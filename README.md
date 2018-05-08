@@ -1,5 +1,8 @@
 # release
 
+[![npm version](https://img.shields.io/npm/v/shelljs-release.svg?style=flat-square)](https://www.npmjs.com/package/shelljs-release)
+[![npm downloads](https://img.shields.io/npm/dm/shelljs-release.svg?style=flat-square)](https://www.npmjs.com/package/shelljs-release)
+
 A simple NodeJS script to help make npm releases.
 
 ## Installation and setup
