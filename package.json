@@ -26,8 +26,12 @@
   },
   "license": "MIT",
   "dependencies": {
+    "chalk": "^2.4.1",
     "minimist": "^1.2.0",
     "shelljs": "^0.7.0"
+  },
+  "engines": {
+    "node": ">=4"
   },
   "devDependencies": {
     "shelljs-changelog": "^0.2.5"

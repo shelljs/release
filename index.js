@@ -3,6 +3,7 @@ require('shelljs/global');
 
 var path = require('path');
 
+var chalk = require('chalk');
 var minimist = require('minimist');
 
 var RELEASE_BRANCH = 'master';
@@ -61,7 +62,7 @@ function run(argv) {
   } catch (e) {
     config.fatal = false;
     echo('');
-    echo('Unable to publish, restoring previous repo state');
+    echo(chalk.red.bold('Unable to publish, restoring previous repo state'));
 
     // Clean up
     var newVersion = require(path.resolve('.', 'package.json')).version;
@@ -69,14 +70,18 @@ function run(argv) {
 
     // Delete the tag and undo the commit
     echo('Removing git tag...');
-    exec('git tag -d ' + tagName);
+    var cleanTag = exec('git tag -d ' + tagName);
     echo('Removing git commit...');
-    exec('git reset --hard HEAD~1');
+    var cleanCommit = exec('git reset --hard HEAD~1');
+    if (cleanTag.code === 0 && cleanCommit.code === 0) {
+      echo(chalk.white.bold('Successfully cleaned up commit and tag'));
+    }
     var npm_user = exec('npm whoami', { silent: true }).trimRight();
     if (npm_user.toString() === '') {
       config.silent = false;
       echo('');
-      echo('You must be logged in to NPM to publish, run "npm login" first.');
+      echo(chalk.yellow.bold(
+          'You must be logged in to NPM to publish, run "npm login" first.'));
       exit(1);
     }
     config.silent = true;
@@ -88,13 +93,15 @@ function run(argv) {
     if (is_collaborator + is_owner === '') {
       // Neither collaborator nor owner
       config.silent = false;
-      echo(npm_user + ' does not have NPM write access. Request access from one of these fine folk:');
+      echo(chalk.yellow.bold(
+          npm_user + ' does not have NPM write access. Request access from one of these fine folk:'));
       echo('');
       exec('npm owner ls');
       exit(1);
     }
 
-    echo('Unknown error: ' + e);
+    echo(chalk.red.bold('Unknown error: ' + e));
+    exit(2);
   }
 
   config.silent = false;
