@@ -6,16 +6,51 @@ var path = require('path');
 var chalk = require('chalk');
 var minimist = require('minimist');
 
-var RELEASE_BRANCH = 'master';
+var DEFAULT_RELEASE_BRANCH = 'master';
 
 // npm version (bump version, commit, make tag)
 // echo npm publish
 //  - if successful, push commit & tag
 //  - if failed, undo commit & tag
 
+/**
+ * Adds space characters to `str` until the return value is `length` characters
+ * long. Returns `str` unmodified if it is already `length` characters long (or
+ * longer).
+ */
+function rightPad(str, length) {
+  var paddingLength = length - str.length;
+  for (var i = 0; i < paddingLength; i++) {
+    str += ' ';
+  }
+  return str;
+}
+
 function usage() {
+  var exampleCmd = [
+    'node', process.argv[1], '[--otp=<otpcode>]', '[--release-branch=<branch>]',
+    '<major|minor|patch>'
+  ];
+  var options = {
+    '--help': 'Show this help message.',
+    '--otp=<otpcode>': 'One-time-password (OTP) to pass to `npm publish`.',
+    '--release-branch=<branch>': 'The branch you intend to cut the release ' +
+                                 'from. Defaults to "' +
+                                 DEFAULT_RELEASE_BRANCH + '" branch.',
+  };
+
   echo('');
-  echo('  Usage: node ' + process.argv[1] + ' [--otp=<otpcode>] <major|minor|patch>');
+  echo('Usage: ' + process.argv[1] + ' [OPTION] <major|minor|patch>');
+  echo('');
+  echo('Available options:');
+  var longestOption = Object.keys(options).reduce(function (accum, option) {
+    return accum.length > option.length ? accum : option;
+  }, '');
+  var columnSize = longestOption.length + 2;
+  Object.keys(options).forEach(function (option) {
+    var description = options[option];
+    echo('  ' + rightPad(option, columnSize) + description);
+  });
 }
 
 function gitBranch() {
@@ -28,13 +63,18 @@ function gitBranch() {
 
 config.silent = true;
 function run(argv) {
+  if (argv.help) {
+    usage();
+    exit(0);
+  }
   var version = argv._[0];
   config.silent = false;
   config.fatal = true;
+  var releaseBranch = argv['release-branch'] || DEFAULT_RELEASE_BRANCH;
   try {
     var currentBranch = gitBranch();
-    if (currentBranch !== RELEASE_BRANCH) {
-      echo('Please switch to the release branch: ' + RELEASE_BRANCH);
+    if (currentBranch !== releaseBranch) {
+      echo('Please switch to the release branch: ' + releaseBranch);
       echo('Currently on: ' + currentBranch);
       exit(1);
     }
@@ -106,8 +146,8 @@ function run(argv) {
 
   config.silent = false;
   try {
-    exec('git push origin ' + RELEASE_BRANCH);
-    exec('git push --tags origin ' + RELEASE_BRANCH);
+    exec('git push origin ' + releaseBranch);
+    exec('git push --tags origin ' + releaseBranch);
   } catch (e) {
     echo('');
     echo('Version has been released, but commit/tag could not be pushed.');
@@ -124,6 +164,8 @@ switch (argv._[0]) {
     break;
 
   default:
+    echo(chalk.yellow.bold(
+        'Missing version bump argument (<major|minor|patch>)'));
     usage();
     exit(1);
     break;
