@@ -1,8 +1,21 @@
 # Change Log
 
-## [Unreleased](https://github.com/shelljs/release/tree/HEAD)
+## [v0.4.0](https://github.com/shelljs/release/tree/v0.4.0) (2020-10-26)
+[Full Changelog](https://github.com/shelljs/release/compare/v0.3.1...v0.4.0)
 
-[Full Changelog](https://github.com/shelljs/release/compare/v0.2.0...HEAD)
+**Implemented enhancements:**
+
+- feat: add option to specify release branch [\#11](https://github.com/shelljs/release/pull/11) ([nfischer](https://github.com/nfischer))
+
+**Closed issues:**
+
+- Allow --release-branch arg [\#9](https://github.com/shelljs/release/issues/9)
+
+## [v0.3.1](https://github.com/shelljs/release/tree/v0.3.1) (2018-11-13)
+[Full Changelog](https://github.com/shelljs/release/compare/v0.3.0...v0.3.1)
+
+## [v0.3.0](https://github.com/shelljs/release/tree/v0.3.0) (2018-05-08)
+[Full Changelog](https://github.com/shelljs/release/compare/v0.2.0...v0.3.0)
 
 **Implemented enhancements:**
 
