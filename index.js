@@ -6,7 +6,16 @@ var path = require('path');
 var chalk = require('chalk');
 var minimist = require('minimist');
 
-var DEFAULT_RELEASE_BRANCH = 'master';
+var GIT_MAIN_BRANCHES = [ 'main', 'master' ];
+function findMainBranch() {
+  for (branch of GIT_MAIN_BRANCHES) {
+    var branchExists = shell.exec('git branch --list ' + branch, { silent: true }).trim() != '';
+    if (branchExists) {
+      return branch;
+    }
+  }
+  throw new Error('Cannot determine main branch of repo');
+}
 
 // npm version (bump version, commit, make tag)
 // echo npm publish
@@ -27,16 +36,12 @@ function rightPad(str, length) {
 }
 
 function usage() {
-  var exampleCmd = [
-    'node', process.argv[1], '[--otp=<otpcode>]', '[--release-branch=<branch>]',
-    '<major|minor|patch>'
-  ];
   var options = {
     '--help': 'Show this help message.',
     '--otp=<otpcode>': 'One-time-password (OTP) to pass to `npm publish`.',
     '--release-branch=<branch>': 'The branch you intend to cut the release ' +
-                                 'from. Defaults to "' +
-                                 DEFAULT_RELEASE_BRANCH + '" branch.',
+                                 'from. Defaults to an ordered preference of ' +
+                                 '[' + GIT_MAIN_BRANCHES.join(', ') + '].',
   };
 
   echo('');
@@ -70,7 +75,7 @@ function run(argv) {
   var version = argv._[0];
   config.silent = false;
   config.fatal = true;
-  var releaseBranch = argv['release-branch'] || DEFAULT_RELEASE_BRANCH;
+  var releaseBranch = argv['release-branch'] || findMainBranch();
   try {
     var currentBranch = gitBranch();
     if (currentBranch !== releaseBranch) {
