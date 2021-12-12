@@ -1,5 +1,15 @@
 # Change Log
 
+## [v0.5.0](https://github.com/shelljs/release/tree/v0.5.0) (2021-12-12)
+[Full Changelog](https://github.com/shelljs/release/compare/v0.4.1...v0.5.0)
+
+**Merged pull requests:**
+
+- feat: support 'main' branch [\#12](https://github.com/shelljs/release/pull/12) ([nfischer](https://github.com/nfischer))
+
+## [v0.4.1](https://github.com/shelljs/release/tree/v0.4.1) (2021-03-21)
+[Full Changelog](https://github.com/shelljs/release/compare/v0.4.0...v0.4.1)
+
 ## [v0.4.0](https://github.com/shelljs/release/tree/v0.4.0) (2020-10-26)
 [Full Changelog](https://github.com/shelljs/release/compare/v0.3.1...v0.4.0)
 
