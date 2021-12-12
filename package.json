@@ -1,6 +1,6 @@
 {
   "name": "shelljs-release",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "A handy release script, using shelljs",
   "main": "index.js",
   "bin": {
