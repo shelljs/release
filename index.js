@@ -9,7 +9,7 @@ var minimist = require('minimist');
 var GIT_MAIN_BRANCHES = [ 'main', 'master' ];
 function findMainBranch() {
   for (branch of GIT_MAIN_BRANCHES) {
-    var branchExists = shell.exec('git branch --list ' + branch, { silent: true }).trim() != '';
+    var branchExists = exec('git branch --list ' + branch, { silent: true }).trim() != '';
     if (branchExists) {
       return branch;
     }
