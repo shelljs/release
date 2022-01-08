@@ -1,5 +1,8 @@
 # Change Log
 
+## [v0.5.1](https://github.com/shelljs/release/tree/v0.5.1) (2022-01-08)
+[Full Changelog](https://github.com/shelljs/release/compare/v0.5.0...v0.5.1)
+
 ## [v0.5.0](https://github.com/shelljs/release/tree/v0.5.0) (2021-12-12)
 [Full Changelog](https://github.com/shelljs/release/compare/v0.4.1...v0.5.0)
 
