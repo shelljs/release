@@ -99,6 +99,13 @@ function run(argv) {
   }
 
   try {
+    var npmVersions = exec('npm --version').trim().split('.');
+    if (npmVersions[0] < 6 && argv.otp) {
+      // I'm not sure about npm v5, but I've verified the --otp switch is not
+      // documented for npm v4 and below.
+      throw new Error(
+          'The --otp switch only supports npm >= v6. Upgrade your node/nvm.');
+    }
     var publishCmd = 'npm publish';
     if (argv.otp) {
       publishCmd += ' --otp=' + argv.otp;
@@ -107,7 +114,7 @@ function run(argv) {
   } catch (e) {
     config.fatal = false;
     echo('');
-    echo(chalk.red.bold('Unable to publish, restoring previous repo state'));
+    echo(chalk.yellow.bold('Unable to publish, restoring previous repo state'));
 
     // Clean up
     var newVersion = require(path.resolve('.', 'package.json')).version;
@@ -145,7 +152,8 @@ function run(argv) {
       exit(1);
     }
 
-    echo(chalk.red.bold('Unknown error: ' + e));
+    var message = e.message || e;
+    echo(chalk.red.bold('Error: ' + message));
     exit(2);
   }
 
