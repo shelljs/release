@@ -101,6 +101,7 @@ function run(argv) {
       throw new Error(
           'The --otp switch only supports npm >= v6. Upgrade your node/nvm.');
     }
+    // 'npm publish' will internally call both 'git commit' and 'git tag'
     var publishCmd = 'npm publish';
     if (argv.otp) {
       publishCmd += ' --otp=' + argv.otp;
@@ -155,7 +156,9 @@ function run(argv) {
   shell.config.silent = false;
   try {
     shell.exec('git push origin ' + releaseBranch);
-    shell.exec('git push --tags origin ' + releaseBranch);
+    var newVersion = require(path.resolve('.', 'package.json')).version;
+    var tagName = 'v' + newVersion;
+    shell.exec('git push origin refs/tags/' + tagName);
   } catch (e) {
     shell.echo('');
     shell.echo('Version has been released, but commit/tag could not be pushed.');
