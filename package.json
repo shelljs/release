@@ -28,10 +28,10 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "minimist": "^1.2.0",
-    "shelljs": "^0.8.5"
+    "shelljs": "^0.9.1"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=18"
   },
   "devDependencies": {
     "shelljs-changelog": "^0.2.6"
