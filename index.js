@@ -8,10 +8,9 @@ var minimist = require('minimist');
 
 var GIT_MAIN_BRANCHES = ['main', 'master'];
 function findMainBranch() {
-  // for (branch of GIT_MAIN_BRANCHES) {
   for (var idx = 0; idx < GIT_MAIN_BRANCHES.length; idx++) {
     var branch = GIT_MAIN_BRANCHES[idx];
-    var branchExists = shell.exec('git branch --list ' + branch, { silent: true }).trim() !== '';
+    var branchExists = shell.cmd('git', 'branch', '--list', branch).trim() !== '';
     if (branchExists) {
       return branch;
     }
@@ -57,18 +56,23 @@ function usage() {
 }
 
 function gitBranch() {
-  var output = shell.exec('git rev-parse --abbrev-ref HEAD', { silent: true });
+  var output = shell.cmd('git', 'rev-parse', '--abbrev-ref', 'HEAD');
   if (output.code) {
     throw new Error('Unable to fetch git branch');
   }
   return output.stdout.trimRight();
 }
 
-function maybeExecute(dryrun, cmdString) {
+function maybeExecute(dryrun, cmdArray, opts) {
+  opts = opts || {};
   if (dryrun) {
+    var cmdString = cmdArray.join(' ');
     shell.echo('... skipping command ' + JSON.stringify(cmdString) + ' (dryrun)');
   } else {
-    shell.exec(cmdString);
+    const result = shell.cmd(...cmdArray);
+    if (opts.loud) {
+      shell.echo(result.stdout.trimRight());
+    }
   }
 }
 
@@ -106,7 +110,7 @@ function run(argv) {
   try {
     shell.echo('Publishing new ' + version + ' version');
     shell.echo('');
-    maybeExecute(argv.dryrun, 'npm version ' + version);
+    maybeExecute(argv.dryrun, ['npm', 'version', version]);
   } catch (e) {
     shell.echo('');
     shell.echo('Unable to bump version, is your repo clean?');
@@ -114,7 +118,7 @@ function run(argv) {
   }
 
   try {
-    var npmVersions = shell.exec('npm --version', { silent: true }).trim().split('.');
+    var npmVersions = shell.cmd('npm', '--version').trim().split('.');
     if (npmVersions[0] < 6 && argv.otp) {
       // I'm not sure about npm v5, but I've verified the --otp switch is not
       // documented for npm v4 and below.
@@ -122,11 +126,11 @@ function run(argv) {
           'The --otp switch only supports npm >= v6. Upgrade your node/nvm.');
     }
     // 'npm publish' will internally call both 'git commit' and 'git tag'
-    var publishCmd = 'npm publish';
+    var publishCmd = ['npm', 'publish'];
     if (argv.otp) {
-      publishCmd += ' --otp=' + argv.otp;
+      publishCmd.push('--otp=' + argv.otp);
     }
-    maybeExecute(argv.dryrun, publishCmd);
+    maybeExecute(argv.dryrun, publishCmd, { loud: true });
   } catch (e) {
     shell.config.fatal = false;
     shell.echo('');
@@ -135,31 +139,31 @@ function run(argv) {
     // Clean up
     // Delete the tag and undo the commit
     shell.echo('Removing git tag...');
-    var cleanTag = shell.exec('git tag -d ' + gitTagName());
+    var cleanTag = shell.cmd('git', 'tag', '-d', gitTagName());
     shell.echo('Removing git commit...');
-    var cleanCommit = shell.exec('git reset --hard HEAD~1');
+    var cleanCommit = shell.cmd('git', 'reset', '--hard', 'HEAD~1');
     if (cleanTag.code === 0 && cleanCommit.code === 0) {
       shell.echo(chalk.white.bold('Successfully cleaned up commit and tag'));
     }
-    var npmUser = shell.exec('npm whoami', { silent: true }).trim();
+    var npmUser = shell.cmd('npm', 'whoami').trim()();
     if (npmUser === '') {
       shell.echo('');
       shell.echo(chalk.yellow.bold(
           'You must be logged in to NPM to publish, run "npm login" first.'));
       shell.exit(1);
     }
-    shell.config.silent = true;
-    var isCollaborator = shell.exec('npm access ls-collaborators')
+    var isCollaborator = shell.cmd('npm', 'access', 'ls-collaborators')
                               .grep('.*' + npmUser + '.*:.*write.*')
                               .trimRight();
-    var isOwner = shell.exec('npm owner ls').grep('.*' + npmUser + ' <.*')
+    var isOwner = shell.cmd('npm', 'owner', 'ls')
+                       .grep('.*' + npmUser + ' <.*')
                        .trimRight();
     if (isCollaborator + isOwner === '') {
       // Neither collaborator nor owner
       shell.echo(chalk.yellow.bold(
           npmUser + ' does not have NPM write access. Request access from one of these fine folk:'));
       shell.echo('');
-      var ownerList = shell.exec('npm owner ls').stdout;
+      var ownerList = shell.cmd('npm', 'owner', 'ls').stdout;
       shell.echo(ownerList);
       shell.exit(1);
     }
@@ -171,8 +175,11 @@ function run(argv) {
 
   shell.config.silent = false;
   try {
-    maybeExecute(argv.dryrun, 'git push origin ' + releaseBranch);
-    maybeExecute(argv.dryrun, 'git push origin refs/tags/' + gitTagName());
+    maybeExecute(argv.dryrun, ['git', 'push', 'origin', releaseBranch],
+                 { loud: true });
+    maybeExecute(argv.dryrun,
+                 ['git', 'push', 'origin', 'refs/tags/' + gitTagName()],
+                 { loud: true });
   } catch (e) {
     shell.echo('');
     shell.echo(chalk.yellow.bold('Version has been released, but commit/tag could not be pushed.'));
