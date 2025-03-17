@@ -33,6 +33,7 @@ function rightPad(str, length) {
 function usage() {
   var options = {
     '--help': 'Show this help message.',
+    '--dryrun': 'Go through the release steps but do not publish anything.',
     '--otp=<otpcode>': 'One-time-password (OTP) to pass to `npm publish`.',
     '--release-branch=<branch>': 'The branch you intend to cut the release ' +
                                  'from. Defaults to an ordered preference of ' +
@@ -61,6 +62,14 @@ function gitBranch() {
   return output.stdout.trimRight();
 }
 
+function maybeExecute(dryrun, cmdString) {
+  if (dryrun) {
+    shell.echo('... skipping command ' + JSON.stringify(cmdString) + ' (dryrun)');
+  } else {
+    shell.exec(cmdString);
+  }
+}
+
 shell.config.silent = true;
 function run(argv) {
   if (argv.help) {
@@ -74,9 +83,13 @@ function run(argv) {
   try {
     var currentBranch = gitBranch();
     if (currentBranch !== releaseBranch) {
-      shell.echo('Please switch to the release branch: ' + releaseBranch);
-      shell.echo('Currently on: ' + currentBranch);
-      shell.exit(1);
+      shell.echo(chalk.red.bold('Please switch to the release branch: ' + releaseBranch));
+      shell.echo(chalk.red.bold('Currently on: ' + currentBranch));
+      if (argv.dryrun) {
+        shell.echo('Release branch does not match: ignoring because this is a dryrun');
+      } else {
+        shell.exit(1);
+      }
     }
   } catch (e) {
     shell.echo('Are you in a git repo?');
@@ -86,7 +99,7 @@ function run(argv) {
   try {
     shell.echo('Publishing new ' + version + ' version');
     shell.echo('');
-    shell.exec('npm version ' + version);
+    maybeExecute(argv.dryrun, 'npm version ' + version);
   } catch (e) {
     shell.echo('');
     shell.echo('Unable to bump version, is your repo clean?');
@@ -94,7 +107,7 @@ function run(argv) {
   }
 
   try {
-    var npmVersions = shell.exec('npm --version').trim().split('.');
+    var npmVersions = shell.exec('npm --version', { silent: true }).trim().split('.');
     if (npmVersions[0] < 6 && argv.otp) {
       // I'm not sure about npm v5, but I've verified the --otp switch is not
       // documented for npm v4 and below.
@@ -106,7 +119,7 @@ function run(argv) {
     if (argv.otp) {
       publishCmd += ' --otp=' + argv.otp;
     }
-    shell.exec(publishCmd);
+    maybeExecute(argv.dryrun, publishCmd);
   } catch (e) {
     shell.config.fatal = false;
     shell.echo('');
@@ -155,14 +168,17 @@ function run(argv) {
 
   shell.config.silent = false;
   try {
-    shell.exec('git push origin ' + releaseBranch);
+    maybeExecute(argv.dryrun, 'git push origin ' + releaseBranch);
     var newVersion = require(path.resolve('.', 'package.json')).version;
     var tagName = 'v' + newVersion;
-    shell.exec('git push origin refs/tags/' + tagName);
+    maybeExecute(argv.dryrun, 'git push origin refs/tags/' + tagName);
   } catch (e) {
     shell.echo('');
-    shell.echo('Version has been released, but commit/tag could not be pushed.');
-    shell.echo('Please push these manually.');
+    shell.echo(chalk.yellow.bold('Version has been released, but commit/tag could not be pushed.'));
+    shell.echo(chalk.yellow.bold('Please push these manually.'));
+  }
+  if (argv.dryrun) {
+    console.log('Dry run completed successfully!');
   }
 }
 
