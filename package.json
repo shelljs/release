@@ -8,6 +8,7 @@
   },
   "scripts": {
     "changelog": "shelljs-changelog",
+    "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1",
     "release:major": "node index.js major",
     "release:minor": "node index.js minor",
@@ -34,6 +35,9 @@
     "node": ">=4"
   },
   "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.31.0",
     "shelljs-changelog": "^0.2.6"
   }
 }

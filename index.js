@@ -6,10 +6,12 @@ var path = require('path');
 var chalk = require('chalk');
 var minimist = require('minimist');
 
-var GIT_MAIN_BRANCHES = [ 'main', 'master' ];
+var GIT_MAIN_BRANCHES = ['main', 'master'];
 function findMainBranch() {
-  for (branch of GIT_MAIN_BRANCHES) {
-    var branchExists = shell.exec('git branch --list ' + branch, { silent: true }).trim() != '';
+  // for (branch of GIT_MAIN_BRANCHES) {
+  for (var idx = 0; idx < GIT_MAIN_BRANCHES.length; idx++) {
+    var branch = GIT_MAIN_BRANCHES[idx];
+    var branchExists = shell.exec('git branch --list ' + branch, { silent: true }).trim() !== '';
     if (branchExists) {
       return branch;
     }
@@ -70,7 +72,12 @@ function maybeExecute(dryrun, cmdString) {
   }
 }
 
-shell.config.silent = true;
+function gitTagName() {
+  var newVersion = require(path.resolve('.', 'package.json')).version;
+  var tagName = 'v' + newVersion;
+  return tagName;
+}
+
 function run(argv) {
   if (argv.help) {
     usage();
@@ -126,38 +133,34 @@ function run(argv) {
     shell.echo(chalk.yellow.bold('Unable to publish, restoring previous repo state'));
 
     // Clean up
-    var newVersion = require(path.resolve('.', 'package.json')).version;
-    var tagName = 'v' + newVersion;
-
     // Delete the tag and undo the commit
     shell.echo('Removing git tag...');
-    var cleanTag = shell.exec('git tag -d ' + tagName);
+    var cleanTag = shell.exec('git tag -d ' + gitTagName());
     shell.echo('Removing git commit...');
     var cleanCommit = shell.exec('git reset --hard HEAD~1');
     if (cleanTag.code === 0 && cleanCommit.code === 0) {
       shell.echo(chalk.white.bold('Successfully cleaned up commit and tag'));
     }
-    var npm_user = shell.exec('npm whoami', { silent: true }).trimRight();
-    if (npm_user.toString() === '') {
-      shell.config.silent = false;
+    var npmUser = shell.exec('npm whoami', { silent: true }).trim();
+    if (npmUser === '') {
       shell.echo('');
       shell.echo(chalk.yellow.bold(
           'You must be logged in to NPM to publish, run "npm login" first.'));
       shell.exit(1);
     }
     shell.config.silent = true;
-    var is_collaborator = shell.exec('npm access ls-collaborators')
-                               .grep('.*' + npm_user + '.*:.*write.*')
-                               .trimRight();
-    var is_owner = shell.exec('npm owner ls').grep('.*' + npm_user + ' <.*')
-                        .trimRight();
-    if (is_collaborator + is_owner === '') {
+    var isCollaborator = shell.exec('npm access ls-collaborators')
+                              .grep('.*' + npmUser + '.*:.*write.*')
+                              .trimRight();
+    var isOwner = shell.exec('npm owner ls').grep('.*' + npmUser + ' <.*')
+                       .trimRight();
+    if (isCollaborator + isOwner === '') {
       // Neither collaborator nor owner
-      shell.config.silent = false;
       shell.echo(chalk.yellow.bold(
-          npm_user + ' does not have NPM write access. Request access from one of these fine folk:'));
+          npmUser + ' does not have NPM write access. Request access from one of these fine folk:'));
       shell.echo('');
-      shell.exec('npm owner ls');
+      var ownerList = shell.exec('npm owner ls').stdout;
+      shell.echo(ownerList);
       shell.exit(1);
     }
 
@@ -169,16 +172,14 @@ function run(argv) {
   shell.config.silent = false;
   try {
     maybeExecute(argv.dryrun, 'git push origin ' + releaseBranch);
-    var newVersion = require(path.resolve('.', 'package.json')).version;
-    var tagName = 'v' + newVersion;
-    maybeExecute(argv.dryrun, 'git push origin refs/tags/' + tagName);
+    maybeExecute(argv.dryrun, 'git push origin refs/tags/' + gitTagName());
   } catch (e) {
     shell.echo('');
     shell.echo(chalk.yellow.bold('Version has been released, but commit/tag could not be pushed.'));
     shell.echo(chalk.yellow.bold('Please push these manually.'));
   }
   if (argv.dryrun) {
-    console.log('Dry run completed successfully!');
+    shell.echo('Dry run completed successfully!');
   }
 }
 
